@@ -1,13 +1,21 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import create_engine
+engine = create_engine('sqlite:///data_base.db', echo = True)
 
-db = SQLAlchemy()
+from sqlalchemy.orm import declarative_base
 
-def create_app(config_file):
-    app = Flask(__name__)
-    app.config.from_pyfile(config_file)
-    db.init_app(app)
-    with app.app_context():
-        db.create_all()
-        import routes
-    return app
+Base = declarative_base()
+
+from sqlalchemy import Column, Integer, String
+
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    fullname = Column(String)
+    nickname = Column(String)
+
+    def __repr__(self):
+        return "<User(name='%s', fullname='%s', nickname='%s')>" % (
+                            self.name, self.fullname, self.nickname)
+
