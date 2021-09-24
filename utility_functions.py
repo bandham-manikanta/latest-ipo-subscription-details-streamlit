@@ -1,6 +1,6 @@
 import pandas as pd
 import requests as reqs
-from app_main import db
+from app_main import db, Model
 from datetime import date
 from pytz import timezone
 from datetime import datetime
@@ -86,6 +86,8 @@ def get_ipos_data():
     upcomingz_ipos_df = df[df['Open'] > today]
     past_ipos_df = df[df['Close'] < today]
 
+    print('*' * 20, upcomingz_ipos_df.shape)
+
     return active_ipos_df, upcomingz_ipos_df, past_ipos_df
 
 def get_subscription_data(url:str) -> pd.DataFrame():
@@ -114,7 +116,12 @@ def get_subscription_data(url:str) -> pd.DataFrame():
     return sub_df
 
 def get_sub_data(row):
-    sub = Subscription.query.get(row['Issuer Company'])
+    # sql = 'select * from IPO_SUBSCRIPTION_DATA where company_name=' + '\"' + row['Issuer Company'] + '\"';
+    # result = db.execute(sql)
+    # sub = result.fetch()
+    # sub = Subscription.query.get(row['Issuer Company'])
+    sub = db.query(Subscription).filter_by(company_name=row['Issuer Company']).first()
+
 
     if sub == None:
         try:

@@ -1,21 +1,14 @@
 from sqlalchemy import create_engine
-engine = create_engine('sqlite:///data_base.db', echo = True)
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import scoped_session
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, event
 
-from sqlalchemy.orm import declarative_base
-
-Base = declarative_base()
-
-from sqlalchemy import Column, Integer, String
-
-class User(Base):
-    __tablename__ = 'users'
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-    fullname = Column(String)
-    nickname = Column(String)
-
-    def __repr__(self):
-        return "<User(name='%s', fullname='%s', nickname='%s')>" % (
-                            self.name, self.fullname, self.nickname)
-
+def connect_mysql():
+	engine = create_engine('sqlite:///data_base.db', echo = True)
+	Session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
+	return Session
+	
+db = connect_mysql()
+Model = declarative_base(name='Model')
+Model.query = db.query_property()

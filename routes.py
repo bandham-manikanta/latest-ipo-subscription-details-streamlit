@@ -1,12 +1,10 @@
 import numpy as np
-# import pandas as pd
-from app_main import db
+import pandas as pd
 from pytz import timezone
 from datetime import datetime
 from models import Subscription
-from flask import current_app as app
-from flask import render_template, make_response
 from utility_functions import get_ipo_subscription_details, extract_sub_data
+from app_main import db
 
 # Get datetime for today: start
 format = "%Y-%m-%d %H:%M:%S"
@@ -15,10 +13,11 @@ now_asia = now_utc.astimezone(timezone('Asia/Kolkata'))
 today = now_asia.strftime(format)
 # Get datetime for today: end
 
-# @app.route('/data', methods=['GET'])
 def get_all_subscriptions():
-    cdrs = Subscription.query.all()
-    return make_response({'subscriptions': cdrs}, 200)
+    sql = 'select * from IPO_SUBSCRIPTION_DATA'
+    result = db.execute(sql)
+    df1 = pd.DataFrame(result.fetchall())
+    return df1
 
 def get_ipos_data():
     active_ipos_df, upcoming_ipos_df, past_ipos_df = get_ipo_subscription_details()
@@ -36,7 +35,9 @@ def get_ipos_data():
     upcoming_ipos_df = upcoming_ipos_df[upcoming_ipo_columns]
     upcoming_ipos_df.columns = ['Issuer Company', 'Open', 'Close', 'Issue Price (Rs)', 'Issue Size (Rs Cr)', 'Main Page']
 
-    subs = Subscription.query.all()
+    sql = 'Select * from IPO_SUBSCRIPTION_DATA'
+    results = db.execute(sql)
+    subs = results.fetchall()
     subs = [sub for sub in subs if not ((sub.close >= today) and (sub.open <= today))]
 
     past_ipos_columns = ['Issuer Company', 'Open', 'Close', 'Issue Price (Rs)', 'Issue Size (Rs Cr)', 'Total Subscription', 'Subscription Page', 'Main Page']
@@ -46,4 +47,4 @@ def get_ipos_data():
         past_ipos_df.iloc[index, :] = extract_sub_data(sub, past_ipos_df.iloc[index, :])
 
     # return render_template("response.html", active_ipos_df=active_ipos_df, upcoming_ipos_df=upcoming_ipos_df, past_ipos_df=past_ipos_df)
-    return active_ipos_df
+    return active_ipos_df, upcoming_ipos_df, past_ipos_df
